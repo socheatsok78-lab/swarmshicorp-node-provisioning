@@ -62,9 +62,6 @@ if [ -n "$HASHICORP_NODE_BIND_INTERFACE" ]; then
 
   HASHICORP_NODE_BIND="HASHICORP_NODE_BIND_ADDRESS=$HASHICORP_NODE_BIND_ADDRESS"
   echo "==> Found address '$HASHICORP_NODE_BIND_ADDRESS' for interface '$HASHICORP_NODE_BIND_INTERFACE', setting node bind option..."
-else
-  echo "You must set HASHICORP_NODE_BIND_INTERFACE to the name of the interface you'd like to bind, exiting"
-  exit 2
 fi
 
 # You can set HASHICORP_NODE_CLIENT_INTERFACE to the name of the interface you'd like to
@@ -79,9 +76,6 @@ if [ -n "$HASHICORP_NODE_CLIENT_INTERFACE" ]; then
 
   HASHICORP_NODE_CLIENT="HASHICORP_NODE_CLIENT_ADDRESS=$HASHICORP_NODE_CLIENT_ADDRESS"
   echo "==> Found address '$HASHICORP_NODE_CLIENT_ADDRESS' for interface '$HASHICORP_NODE_CLIENT_INTERFACE', setting node client option..."
-else
-  echo "You must set HASHICORP_NODE_CLIENT_INTERFACE to the name of the interface you'd like to bind client interfaces to, exiting"
-  exit 2
 fi
 
 
