@@ -12,15 +12,19 @@ HASHICORP_NODE_PROVISIONING_FILE=${HASHICORP_NODE_PROVISIONING_FILE:-"${HASHICOR
 echo "==> Starting HashiCorp Node Provisioning"
 
 if [ -f "$HASHICORP_NODE_PROVISIONING_FILE" ]; then
-  echo "==> Provisioning file already exists, exiting"
+  if [[ -n "${HASHICORP_NODE_PROVISIONING_FILE_OVERRIDE}" ]]; then
+    rm -f "$HASHICORP_NODE_PROVISIONING_FILE"
+  else
+    echo "==> Provisioning file already exists, exiting"
 
-  source "$HASHICORP_NODE_PROVISIONING_FILE"
-  test -n "$HASHICORP_NODE_ADVERTISE" && echo "- $HASHICORP_NODE_ADVERTISE"
-  test -n "$HASHICORP_NODE_ADVERTISE_WAN" && echo "- $HASHICORP_NODE_ADVERTISE_WAN"
-  test -n "$HASHICORP_NODE_BIND" && echo "- $HASHICORP_NODE_BIND"
-  test -n "$HASHICORP_NODE_CLIENT" && echo "- $HASHICORP_NODE_CLIENT"
+    source "$HASHICORP_NODE_PROVISIONING_FILE"
+    test -n "$HASHICORP_NODE_ADVERTISE" && echo "- $HASHICORP_NODE_ADVERTISE"
+    test -n "$HASHICORP_NODE_ADVERTISE_WAN" && echo "- $HASHICORP_NODE_ADVERTISE_WAN"
+    test -n "$HASHICORP_NODE_BIND" && echo "- $HASHICORP_NODE_BIND"
+    test -n "$HASHICORP_NODE_CLIENT" && echo "- $HASHICORP_NODE_CLIENT"
 
-  exit 0
+    exit 0
+  fi
 fi
 
 # Advertise Address Options
