@@ -1,5 +1,11 @@
 #!/bin/bash
 
+entrypoint_log() {
+    if [ -z "${HASHICORP_NODE_PROVISIONING_ENTRYPOINT_QUIET_LOGS:-}" ]; then
+        echo "$@"
+    fi
+}
+
 HASHICORP_NODE_PROVISIONING_DIR=${HASHICORP_NODE_PROVISIONING_DIR:-"/.swarmshicorp-node-provisioning"}
 HASHICORP_NODE_PROVISIONING_FILE=${HASHICORP_NODE_PROVISIONING_FILE:-"${HASHICORP_NODE_PROVISIONING_DIR}/activate"}
 
