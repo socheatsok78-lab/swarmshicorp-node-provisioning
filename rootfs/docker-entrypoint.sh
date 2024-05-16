@@ -39,9 +39,6 @@ if [[ -n "$HASHICORP_NODE_ADVERTISE_INTERFACE" ]]; then
 
   HASHICORP_NODE_ADVERTISE="HASHICORP_NODE_ADVERTISE_ADDRESS=\"$HASHICORP_NODE_ADVERTISE_ADDRESS\""
   entrypoint_log "==> Found address '$HASHICORP_NODE_ADVERTISE_ADDRESS' for interface '$HASHICORP_NODE_ADVERTISE_INTERFACE', setting node advertise address..."
-else
-  echo "You must set HASHICORP_NODE_ADVERTISE_INTERFACE to the name of the interface you'd like to advertise, exiting"
-  exit 2
 fi
 
 # The advertise WAN address is used to change the address that we advertise to server nodes joining through the WAN.
@@ -54,9 +51,6 @@ if [[ -n "$HASHICORP_NODE_ADVERTISE_WAN_INTERFACE" ]]; then
 
   HASHICORP_NODE_ADVERTISE_WAN="HASHICORP_NODE_ADVERTISE_WAN_ADDRESS=\"$HASHICORP_NODE_ADVERTISE_WAN_ADDRESS\""
   entrypoint_log "==> Found address '$HASHICORP_NODE_ADVERTISE_WAN_ADDRESS' for interface '$HASHICORP_NODE_ADVERTISE_WAN_INTERFACE', setting node advertise-wan address..."
-else
-  echo "You must set HASHICORP_NODE_ADVERTISE_WAN_INTERFACE to the name of the interface you'd like to advertise-wan, exiting"
-  exit 2
 fi
 
 mkdir -p $(dirname $HASHICORP_NODE_PROVISIONING_FILE)
