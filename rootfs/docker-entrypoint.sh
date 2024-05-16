@@ -27,6 +27,34 @@ if [ -f "$HASHICORP_NODE_PROVISIONING_FILE" ]; then
   fi
 fi
 
+# You can set HASHICORP_NODE_BIND_INTERFACE to the name of the interface you'd like to
+# bind to and this will look up the IP and pass the proper -bind= option along
+# to Consul.
+if [ -n "$HASHICORP_NODE_BIND_INTERFACE" ]; then
+  HASHICORP_NODE_BIND_ADDRESS=$(ip -o -4 addr list $HASHICORP_NODE_BIND_INTERFACE | head -n1 | awk '{print $4}' | cut -d/ -f1)
+  if [ -z "$HASHICORP_NODE_BIND_ADDRESS" ]; then
+    echo "Could not find IP for interface '$HASHICORP_NODE_BIND_INTERFACE', exiting"
+    exit 1
+  fi
+
+  HASHICORP_NODE_BIND="HASHICORP_NODE_BIND_ADDRESS=\"$HASHICORP_NODE_BIND_ADDRESS\""
+  echo "==> Found address '$HASHICORP_NODE_BIND_ADDRESS' for interface '$HASHICORP_NODE_BIND_INTERFACE', setting node bind address..."
+fi
+
+# You can set HASHICORP_NODE_CLIENT_INTERFACE to the name of the interface you'd like to
+# bind client intefaces (HTTP, DNS, and RPC) to and this will look up the IP and
+# pass the proper -client= option along to Consul.
+if [ -n "$HASHICORP_NODE_CLIENT_INTERFACE" ]; then
+  HASHICORP_NODE_CLIENT_ADDRESS=$(ip -o -4 addr list $HASHICORP_NODE_CLIENT_INTERFACE | head -n1 | awk '{print $4}' | cut -d/ -f1)
+  if [ -z "$HASHICORP_NODE_CLIENT_ADDRESS" ]; then
+    echo "Could not find IP for interface '$HASHICORP_NODE_CLIENT_INTERFACE', exiting"
+    exit 1
+  fi
+
+  HASHICORP_NODE_CLIENT="HASHICORP_NODE_CLIENT_ADDRESS=\"$HASHICORP_NODE_CLIENT_ADDRESS\""
+  echo "==> Found address '$HASHICORP_NODE_CLIENT_ADDRESS' for interface '$HASHICORP_NODE_CLIENT_INTERFACE', setting node client address..."
+fi
+
 # Advertise Address Options
 # 
 # # The advertise address is used to change the address that we advertise to other nodes in the cluster.
@@ -39,7 +67,7 @@ if [[ -n "$HASHICORP_NODE_ADVERTISE_INTERFACE" ]]; then
   fi
 
   HASHICORP_NODE_ADVERTISE="HASHICORP_NODE_ADVERTISE_ADDRESS=\"$HASHICORP_NODE_ADVERTISE_ADDRESS\""
-  entrypoint_log "==> Found address '$HASHICORP_NODE_ADVERTISE_ADDRESS' for interface '$HASHICORP_NODE_ADVERTISE_INTERFACE', setting node advertise option..."
+  entrypoint_log "==> Found address '$HASHICORP_NODE_ADVERTISE_ADDRESS' for interface '$HASHICORP_NODE_ADVERTISE_INTERFACE', setting node advertise address..."
 else
   echo "You must set HASHICORP_NODE_ADVERTISE_INTERFACE to the name of the interface you'd like to advertise, exiting"
   exit 2
@@ -54,53 +82,19 @@ if [[ -n "$HASHICORP_NODE_ADVERTISE_WAN_INTERFACE" ]]; then
   fi
 
   HASHICORP_NODE_ADVERTISE_WAN="HASHICORP_NODE_ADVERTISE_WAN_ADDRESS=\"$HASHICORP_NODE_ADVERTISE_WAN_ADDRESS\""
-  entrypoint_log "==> Found address '$HASHICORP_NODE_ADVERTISE_WAN_ADDRESS' for interface '$HASHICORP_NODE_ADVERTISE_WAN_INTERFACE', setting node advertise-wan option..."
+  entrypoint_log "==> Found address '$HASHICORP_NODE_ADVERTISE_WAN_ADDRESS' for interface '$HASHICORP_NODE_ADVERTISE_WAN_INTERFACE', setting node advertise-wan address..."
 else
   echo "You must set HASHICORP_NODE_ADVERTISE_WAN_INTERFACE to the name of the interface you'd like to advertise-wan, exiting"
   exit 2
 fi
 
-# You can set HASHICORP_NODE_BIND_INTERFACE to the name of the interface you'd like to
-# bind to and this will look up the IP and pass the proper -bind= option along
-# to Consul.
-if [ -n "$HASHICORP_NODE_BIND_INTERFACE" ]; then
-  HASHICORP_NODE_BIND_ADDRESS=$(ip -o -4 addr list $HASHICORP_NODE_BIND_INTERFACE | head -n1 | awk '{print $4}' | cut -d/ -f1)
-  if [ -z "$HASHICORP_NODE_BIND_ADDRESS" ]; then
-    echo "Could not find IP for interface '$HASHICORP_NODE_BIND_INTERFACE', exiting"
-    exit 1
-  fi
-
-  HASHICORP_NODE_BIND="HASHICORP_NODE_BIND_ADDRESS=\"$HASHICORP_NODE_BIND_ADDRESS\""
-  echo "==> Found address '$HASHICORP_NODE_BIND_ADDRESS' for interface '$HASHICORP_NODE_BIND_INTERFACE', setting node bind option..."
-fi
-
-# You can set HASHICORP_NODE_CLIENT_INTERFACE to the name of the interface you'd like to
-# bind client intefaces (HTTP, DNS, and RPC) to and this will look up the IP and
-# pass the proper -client= option along to Consul.
-if [ -n "$HASHICORP_NODE_CLIENT_INTERFACE" ]; then
-  HASHICORP_NODE_CLIENT_ADDRESS=$(ip -o -4 addr list $HASHICORP_NODE_CLIENT_INTERFACE | head -n1 | awk '{print $4}' | cut -d/ -f1)
-  if [ -z "$HASHICORP_NODE_CLIENT_ADDRESS" ]; then
-    echo "Could not find IP for interface '$HASHICORP_NODE_CLIENT_INTERFACE', exiting"
-    exit 1
-  fi
-
-  HASHICORP_NODE_CLIENT="HASHICORP_NODE_CLIENT_ADDRESS=\"$HASHICORP_NODE_CLIENT_ADDRESS\""
-  echo "==> Found address '$HASHICORP_NODE_CLIENT_ADDRESS' for interface '$HASHICORP_NODE_CLIENT_INTERFACE', setting node client option..."
-fi
-
-
 mkdir -p $(dirname $HASHICORP_NODE_PROVISIONING_FILE)
-cat <<EOT > "$HASHICORP_NODE_PROVISIONING_FILE"
-export $HASHICORP_NODE_ADVERTISE
-export $HASHICORP_NODE_ADVERTISE_WAN
-export $HASHICORP_NODE_BIND
-export $HASHICORP_NODE_CLIENT
-EOT
 
-test -n "$HASHICORP_NODE_ADVERTISE" && echo "- $HASHICORP_NODE_ADVERTISE"
-test -n "$HASHICORP_NODE_ADVERTISE_WAN" && echo "- $HASHICORP_NODE_ADVERTISE_WAN"
-test -n "$HASHICORP_NODE_BIND" && echo "- $HASHICORP_NODE_BIND"
-test -n "$HASHICORP_NODE_CLIENT" && echo "- $HASHICORP_NODE_CLIENT"
+echo "" > "$HASHICORP_NODE_PROVISIONING_FILE"
+test -n "$HASHICORP_NODE_BIND"            && echo "export $HASHICORP_NODE_BIND" >> "$HASHICORP_NODE_PROVISIONING_FILE"
+test -n "$HASHICORP_NODE_CLIENT"          && echo "export $HASHICORP_NODE_CLIENT" >> "$HASHICORP_NODE_PROVISIONING_FILE"
+test -n "$HASHICORP_NODE_ADVERTISE"       && echo "export $HASHICORP_NODE_ADVERTISE" >> "$HASHICORP_NODE_PROVISIONING_FILE"
+test -n "$HASHICORP_NODE_ADVERTISE_WAN"   && echo "export $HASHICORP_NODE_ADVERTISE_WAN" >> "$HASHICORP_NODE_PROVISIONING_FILE"
 
 echo "==> Provisioning file written to $HASHICORP_NODE_PROVISIONING_FILE"
 exit 0
